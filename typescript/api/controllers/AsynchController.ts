@@ -21,6 +21,8 @@
 declare var module;
 declare var sails;
 import { Observable } from 'rxjs/Rx';
+import moment from 'moment-es6';
+
 declare function require(name:string);
 declare var AsynchsService, VocabService, BrandingService;
 /**
@@ -41,7 +43,11 @@ export module Controllers {
     protected _exportedMethods: any = [
         'index',
         'start',
-        'progress'
+        'progress',
+        'stop',
+        'update',
+        'subscribe',
+        'unsubscribe'
     ];
 
     /**
@@ -54,66 +60,127 @@ export module Controllers {
     }
 
     public start(req, res) {
-      const procId = req.param("procId");
-      const forceHarvest = req.query.force == "true";
+      const progressObj = this.createProgressObjFromRequest(req);
+      AsynchsService.start(progressObj).subscribe(progress => {
+        this.broadcast(req, 'start', progress);
+        this.ajaxOk(req, res, null, progress, true);
+      });
+    }
+
+    public stop(req, res) {
+      const id = req.param('id');
+      AsynchsService.finish(id).subscribe(progress => {
+        this.broadcast(req, 'stop', progress[0]);
+        this.ajaxOk(req, res, null, progress[0], true);
+      });
+    }
+
+    public update(req, res) {
+      const id = req.param('id');
+      const progressObj = this.createProgressObjFromRequest(req);
+      AsynchsService.update({id: id}, progressObj).subscribe(progress => {
+        this.broadcast(req, 'update', progress[0]);
+        this.ajaxOk(req, res, null, progress[0], true);
+      });
+    }
+
+    protected createProgressObjFromRequest(req) {
       const brand = BrandingService.getBrand(req.session.branding);
       const username = req.user.username;
-      switch (procId) {
-        case "load_grid":
-          AsynchsService.start(brand.id, 'Load Institution Lookup data.', username)
-          .subscribe(progress => {
-            this.ajaxOk(req, res, null, {status: 'Starting', progressId: progress.id}, true);
-            const progressId = progress.id;
-            VocabService.loadCollection('grid', progressId, forceHarvest).subscribe(prog=> {
-              console.log(`Asynch progress: `);
-              console.log(prog);
-            },
-            error => {
-              console.error(`Asynch Error: `);
-              console.error(error);
-              AsynchsService.finish(progressId, {id: progressId, status: 'errored', message: error.message}).subscribe(finish => {
-                console.log(`Asynch error update completed.`);
-              });
-            });
-            // // start the asynch process...
-            // const context = {progressId: progress.id, asynchService: AsynchsService, vocabService: VocabService};
-            // const subs = Observable.start(()=> {
-            //   this.vocabService.loadCollection('grid', progressId).subscribe(prog=> {
-            //     sails.log.verbose(`Asynch progress: `);
-            //     sails.log.verbose(prog);
-            //   },
-            //   error => {
-            //     sails.log.error(`Asynch Error: `);
-            //     sails.log.error(error);
-            //     this.asynchService.finish({id: this.progressId, status: 'errored'}).subscribe(finish => {
-            //       sails.log.verbose(`Asynch record update completed.`);
-            //     });
-            //   },
-            //   () => {
-            //     sails.log.verbose(`Asynch completed:`);
-            //     this.asynchService.finish({id: this.progressId}).subscribe(finish => {
-            //       sails.log.verbose(`Asynch record update completed.`);
-            //     });
-            //   });
-            // }, context, Scheduler.timeout);
-            // subs.subscribe((x)=> {
-            //   sails.log.verbose(`Starting asynch...`);
-            // }, error => {
-            //   sails.log.error(`Asynch process failed.`);
-            // }, () => {
-            //   sails.log.verbose(`Asynch wrapper completed.`);
-            // });
-          });
-          break
-        default:
-          this.ajaxFail(req, res, null, {message: 'Invalid process id.'}, true);
-          break
+      const name = req.param('name');
+      const recordOid = req.param('relatedRecordId');
+      const metadata = req.param('metadata') ? req.param('metadata') : null;
+      const method = req.method;
+      const status = req.param('status');
+      const progressObj:any = {
+         name: name,
+         started_by: username,
+         branding: brand.id,
+         status:status,
+         metadata: metadata,
+         relatedRecordId: recordOid,
+         message: req.param('message'),
+         taskType: req.param('taskType')
+      };
+      if (!_.isUndefined(req.param('targetIdx'))) {
+        progressObj.targetIdx = req.param('targetIdx');
       }
+      if (!_.isUndefined(req.param('currentIdx'))) {
+        progressObj.currentIdx = req.param('currentIdx')
+      }
+      return progressObj;
     }
 
     public progress(req, res) {
-
+      const fq = this.getQuery(req.param('fq'));
+      if (_.isEmpty(fq)) {
+        return this.ajaxFail(req, res, 'Empty queries are not allowed.');
+      }
+      const brand = BrandingService.getBrand(req.session.branding);
+      fq.where.branding = brand.id;
+      AsynchsService.get(fq).subscribe(progress => {
+        this.ajaxOk(req, res, null, progress, true);
+      });
     }
+
+    protected getQuery(fq) {
+      if (_.isString(fq)) {
+        fq = JSON.parse(fq);
+      }
+      _.unset(fq, '$where');
+      _.unset(fq, 'group');
+      _.unset(fq, 'mapReduce');
+      return fq;
+    }
+
+    public subscribe(req, res) {
+      const roomId = req.param('roomId');
+      console.log(`Trying to join: ${roomId}`);
+      if (!req.isSocket) {
+        return res.badRequest();
+      }
+
+      sails.sockets.join(req, roomId, (err) => {
+        if (err) {
+          console.log(`Failed to join room`);
+          return this.ajaxFail(req, res, `Failed to join room: ${roomId}`, err, true);
+        }
+        console.log(`Joined room: ${roomId}`);
+        return this.ajaxOk(req, res, null, {
+          status: true,
+          message: `Successfully joined: ${roomId}`
+        },
+        true);
+      });
+    }
+
+    public unsubscribe(req, res) {
+      if (!req.isSocket) {
+        return res.badRequest();
+      }
+      const roomId = req.param('roomId')
+      sails.sockets.leave(req, roomId, (err) => {
+        if (err) {
+          return this.ajaxFail(req, res, `Failed to leave room: ${roomId}`, err, true);
+        }
+        return this.ajaxOk(req, res, null, {
+          status: true,
+          message: `Successfully left: ${roomId}`
+        },
+        true);
+      });
+    }
+
+    protected broadcast(req, eventName, progressObj) {
+      if (!_.isEmpty(progressObj.relatedRecordId) && !_.isUndefined(progressObj.relatedRecordId)) {
+        sails.sockets.broadcast(progressObj.relatedRecordId, eventName, progressObj, req);
+        sails.sockets.broadcast(progressObj.id, eventName, progressObj, req);
+        if (progressObj.taskType) {
+          sails.sockets.broadcast(`${progressObj.relatedRecordId}-${progressObj.taskType}`, eventName, progressObj, req);
+        }
+      }
+    }
+
     /**
      **************************************************************************************************
      **************************************** Override magic methods **********************************

@@ -62,14 +62,20 @@ export class FieldBase<T> {
   injector: Injector;
   componentReactors: any[] = [];
   clName: string;
+  visible: boolean;
+  appConfig: any;
+  visibilityCriteria: any;
+  validators: any;
 
   @Output() public onValueUpdate: EventEmitter<any> = new EventEmitter<any>();
+  @Output() public onValueLoaded: EventEmitter<any> = new EventEmitter<any>();
 
 
   constructor(options = {}, injector) {
     this.injector = injector;
     this.translationService = this.getFromInjector(TranslationService);
     this.setOptions(options);
+    this.validators = null;
   }
 
   getFromInjector(token:any) {
@@ -101,11 +107,13 @@ export class FieldBase<T> {
     this.cssClasses = options.cssClasses || {}; // array of
     this.groupClasses = options['groupClasses'] || '';
     this.groupName = options.groupName || null;
-    this.editMode = options.editMode || false;
-    this.readOnly = options.readOnly || false;
+    this.editMode = _.isUndefined(options.editMode) ? false : options.editMode;
+    this.readOnly = _.isUndefined(options.readOnly) ? false : options.readOnly;
     this.onChange = options['onChange'] || null;
     this.publish = options['publish'] || null;
     this.subscribe = options['subscribe'] || null;
+    this.visible = _.isUndefined(options['visible']) ? true : options['visible'];
+    this.visibilityCriteria = options['visibilityCriteria'];
 
     if (this.groupName) {
       this.hasGroup = true;
@@ -145,8 +153,10 @@ export class FieldBase<T> {
     if (valueElem) {
       this.value = valueElem;
     }
-    this.formModel = this.required ? new FormControl(this.value || '', Validators.required)
-                                      : new FormControl(this.value || '');
+    if (this.required) {
+      this.validators = Validators.required;
+    }
+    this.formModel = new FormControl(this.value || '', this.validators);
     return this.formModel;
   }
 
@@ -197,14 +207,12 @@ export class FieldBase<T> {
   }
 
   public setupEventHandlers() {
-
+    const publishConfig = this.publish;
+    const subscribeConfig = this.subscribe;
     if (!_.isEmpty(this.formModel)) {
-      const publishConfig = this.publish;
-      const subscribeConfig = this.subscribe;
 
       if (!_.isEmpty(publishConfig)) {
         _.forOwn(publishConfig, (eventConfig, eventName) => {
-          console.log(`Setting up ${eventName} handlers for field: ${this.name}`)
           const eventSource = eventConfig.modelEventSource;
           this.formModel[eventSource].subscribe((value:any) => {
             if (this.valueNotNull(value)) {
@@ -242,38 +250,20 @@ export class FieldBase<T> {
 
         });
       }
+    }
 
-      if (!_.isEmpty(subscribeConfig)) {
+    if (!_.isEmpty(subscribeConfig)) {
 
-        _.forOwn(subscribeConfig, (subConfig, srcName) => {
-          _.forOwn(subConfig, (eventConfArr, eventName) => {
-            const eventEmitter = srcName == "this" ? this[eventName] : this.fieldMap[srcName].field[eventName];
-            eventEmitter.subscribe((value:any) => {
-              let curValue = value;
-              if (_.isArray(value)) {
-                curValue = [];
-                _.each(value, (v: any) => {
-                  let entryVal = v;
-                  _.each(eventConfArr, (eventConf: any) => {
-                    const fn:any = _.get(this, eventConf.action);
-                    if (fn) {
-                      let boundFunction = fn;
-                      if(eventConf.action.indexOf(".") == -1) {
-                        boundFunction = fn.bind(this);
-                      } else {
-                        var objectName = eventConf.action.substring(0,eventConf.action.indexOf("."));
-                        boundFunction = fn.bind(this[objectName]);
-                      }
-                      entryVal = boundFunction(entryVal, eventConf);
-                    }
-                  });
-                  if (!_.isEmpty(entryVal)) {
-                    curValue.push(entryVal);
-                  }
-                });
-              } else {
+      _.forOwn(subscribeConfig, (subConfig, srcName) => {
+        _.forOwn(subConfig, (eventConfArr, eventName) => {
+          const eventEmitter = this.getEventEmitter(eventName, srcName);
+          eventEmitter.subscribe((value:any) => {
+            let curValue = value;
+            if (_.isArray(value)) {
+              curValue = [];
+              _.each(value, (v: any) => {
+                let entryVal = v;
                 _.each(eventConfArr, (eventConf: any) => {
-
                   const fn:any = _.get(this, eventConf.action);
                   if (fn) {
                     let boundFunction = fn;
@@ -283,16 +273,47 @@ export class FieldBase<T> {
                       var objectName = eventConf.action.substring(0,eventConf.action.indexOf("."));
                       boundFunction = fn.bind(this[objectName]);
                     }
-                    curValue = boundFunction(curValue, eventConf);
+                    entryVal = boundFunction(entryVal, eventConf);
                   }
                 });
-              }
+                if (!_.isEmpty(entryVal)) {
+                  curValue.push(entryVal);
+                }
+              });
+            } else {
+              _.each(eventConfArr, (eventConf: any) => {
+
+                const fn:any = _.get(this, eventConf.action);
+                if (fn) {
+                  let boundFunction = fn;
+                  if(eventConf.action.indexOf(".") == -1) {
+                    boundFunction = fn.bind(this);
+                  } else {
+                    var objectName = eventConf.action.substring(0,eventConf.action.indexOf("."));
+                    boundFunction = fn.bind(this[objectName]);
+                  }
+                  curValue = boundFunction(curValue, eventConf);
+                }
+              });
+            }
+            if (!_.isUndefined(curValue)) {
+              // cascade the event instance wide if only there's a valid value
               this.reactEvent(eventName, curValue, value);
-            });
+            }
           });
         });
-      }
+      });
     }
+  }
+
+  protected getEventEmitter(eventName, srcName) {
+    if (srcName == "this") {
+      return this[eventName];
+    }
+    if (srcName == "form") {
+      return this.fieldMap['_rootComp'][eventName];
+    }
+    return this.fieldMap[srcName].field[eventName];
   }
 
   public emitEvent(eventName: string, eventData: any, origData: any) {
@@ -301,7 +322,9 @@ export class FieldBase<T> {
 
   public reactEvent(eventName: string, eventData: any, origData: any) {
     this.value = eventData;
-    this.formModel.setValue(eventData, { onlySelf: true, emitEvent: false });
+    if (this.formModel) {
+      this.formModel.setValue(eventData, { onlySelf: true, emitEvent: false });
+    }
     _.each(this.componentReactors, (compReact) => {
       compReact.reactEvent(eventName, eventData, origData, this);
     });
@@ -327,5 +350,57 @@ export class FieldBase<T> {
   public setValue(value:any, emitEvent:boolean=true) {
     this.value = value;
     this.formModel.setValue(value, { onlySelf: true, emitEvent: emitEvent });
+  }
+
+  public toggleVisibility() {
+    this.visible = !this.visible;
+  }
+
+  public setVisibility(data) {
+    if (_.isObject(this.visibilityCriteria) && this.visibilityCriteria.type == 'function') {
+      const fn:any = _.get(this, this.visibilityCriteria.action);
+      if (fn) {
+        let boundFunction = fn;
+        if(this.visibilityCriteria.action.indexOf(".") == -1) {
+          boundFunction = fn.bind(this);
+        } else {
+          var objectName = this.visibilityCriteria.action.substring(0,this.visibilityCriteria.action.indexOf("."));
+          boundFunction = fn.bind(this[objectName]);
+        }
+        this.visible = boundFunction(data);
+      }
+    } else {
+      this.visible = _.isEqual(data, this.visibilityCriteria);
+    }
+  }
+
+  public replaceValWithConfig(val) {
+    _.forOwn(this.appConfig, (configVal, configKey) => {
+      val = val.replace(new RegExp(`@${configKey}`, 'g'), configVal);
+    });
+    return val;
+  }
+
+  public getConfigEntry(name, defValue) {
+    return _.isUndefined(_.get(this.appConfig, name)) ? defValue : _.get(this.appConfig, name);
+  }
+
+  public publishValueLoaded() {
+    this.onValueLoaded.emit(this.value);
+  }
+
+  setRequiredAndClearValueOnFalse(flag) {
+    this.required = flag;
+    if (flag) {
+      this.validators = Validators.required;
+      this.formModel.setValidators(this.validators);
+    } else {
+      if (_.isFunction(this.validators) && _.isEqual(this.validators, Validators.required)) {
+        this.validators = null;
+      }
+      this.formModel.clearValidators();
+      this.formModel.setValue(null);
+      this.value = null;
+    }
   }
 }

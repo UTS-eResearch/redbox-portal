@@ -19,7 +19,7 @@
 
 import { Input, Component, ViewChild, ViewContainerRef, OnInit, Injector, AfterViewInit, AfterViewChecked, ChangeDetectorRef } from '@angular/core';
 import { FieldBase } from './field-base';
-import { Container, DateTime, AnchorOrButton, SaveButton, CancelButton, TabOrAccordionContainer,ParameterRetrieverField, TabNavButton, Spacer } from './field-simple';
+import { HtmlRaw, Container, DateTime, AnchorOrButton, SaveButton, CancelButton, TabOrAccordionContainer,ParameterRetrieverField, TabNavButton, Spacer, Toggle } from './field-simple';
 import { RecordMetadataRetrieverField } from './record-meta.component';
 import { FormGroup, FormControl, FormArray } from '@angular/forms';
 import * as _ from "lodash-es";
@@ -180,7 +180,7 @@ export class DropdownFieldComponent extends SelectionComponent {
 @Component({
   selector: 'selectionfield',
   template: `
-  <div [formGroup]='form' *ngIf="field.editMode" class="form-group">
+  <div [formGroup]='form' *ngIf="field.editMode && field.visible" class="form-group">
      <label [attr.for]="field.name">
       {{field.label}} {{ getRequiredLabelStr()}}
       <button type="button" class="btn btn-default" *ngIf="field.help" (click)="toggleHelp()"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></button>
@@ -188,8 +188,8 @@ export class DropdownFieldComponent extends SelectionComponent {
      <span id="{{ 'helpBlock_' + field.name }}" class="help-block" *ngIf="this.helpShow" [innerHtml]="field.help"></span>
      <span *ngFor="let opt of field.options">
       <!-- radio type hard-coded otherwise accessor directive will not work! -->
-      <input *ngIf="isRadio()" type="radio" name="{{field.name}}" [id]="field.name + '_' + opt.value" [formControl]="getFormControl()" [value]="opt.value">
-      <input *ngIf="!isRadio()" type="{{field.controlType}}" name="{{field.name}}" [id]="field.name + '_' + opt.value" [value]="opt.value" (change)="onChange(opt, $event)" [attr.selected]="getControlFromOption(opt)" [attr.checked]="getControlFromOption(opt)">
+      <input *ngIf="isRadio()" type="radio" name="{{field.name}}" [id]="field.name + '_' + opt.value" [formControl]="getFormControl()" [value]="opt.value" [attr.disabled]="field.readOnly ? '' : null ">
+      <input *ngIf="!isRadio()" type="{{field.controlType}}" name="{{field.name}}" [id]="field.name + '_' + opt.value" [value]="opt.value" (change)="onChange(opt, $event)" [attr.selected]="getControlFromOption(opt)" [attr.checked]="getControlFromOption(opt)" [attr.disabled]="field.readOnly ? '' : null ">
       <label for="{{field.name + '_' + opt.value}}" class="radio-label">{{ opt.label }}</label>
       <br/>
      </span>
@@ -203,13 +203,23 @@ export class DropdownFieldComponent extends SelectionComponent {
     </ng-container>
     <ng-container *ngIf="!isRadio()">
       <span *ngIf="field.label" class="key">{{field.label}}</span>
-      <span class="value">{{getLabel(value)}}<br/></span>
+      <span class="value" *ngIf="!isValArray()">{{getLabel(field.value)}}</span>
+      <ng-container *ngIf="isValArray()">
+        <div class="value" *ngFor="let val of field.value">
+          {{getLabel(val)}}
+        </div>
+      </ng-container>
     </ng-container>
+    <div>&nbsp;</div>
   </div>
   `,
 })
 export class SelectionFieldComponent extends SelectionComponent {
   static clName = 'SelectionFieldComponent';
+
+  isValArray() {
+    return _.isArray(this.field.value);
+  }
 
   isRadio() {
     return this.field.controlType == 'radio';
@@ -223,7 +233,7 @@ export class SelectionFieldComponent extends SelectionComponent {
   }
 
   onChange(opt:any, event:any) {
-      let formcontrol:any = this.getFormControl();
+    let formcontrol:any = this.getFormControl();
     if (event.target.checked) {
       formcontrol.push(new FormControl(opt.value));
     } else {
@@ -317,17 +327,18 @@ export class ButtonBarContainerComponent extends SimpleComponent {
 @Component({
   selector: 'htmlraw',
   template: `
-  <ng-content></ng-content>
+  <span *ngIf="field.visible" [innerHtml]="field.value"></span>
   `,
 })
 export class HtmlRawComponent extends SimpleComponent {
+  field: HtmlRaw;
 
 }
 // For creating text blocks with help sections?
 @Component({
   selector: 'text-block',
   template: `
-  <div [ngSwitch]="field.type">
+  <div *ngIf="field.visible" [ngSwitch]="field.type">
     <h1 *ngSwitchCase="'h1'" [ngClass]="field.cssClasses">{{field.value}}</h1>
     <h2 *ngSwitchCase="'h2'" [ngClass]="field.cssClasses">{{field.value}}</h2>
     <h3 *ngSwitchCase="'h3'" [ngClass]="field.cssClasses">{{field.value}}</h3>
@@ -379,7 +390,7 @@ export class SaveButtonComponent extends SimpleComponent {
 
   public onClick(event: any) {
     if(this.field.closeOnSave == true) {
-      var successObs = this.fieldMap._rootComp.onSubmit();
+      var successObs = this.field.targetStep ? this.fieldMap._rootComp.onSubmit(true, this.field.targetStep, false, this.field.additionalData) : this.fieldMap._rootComp.onSubmit(false, null, false, this.field.additionalData);
 
       successObs.subscribe( successful =>  {
         if(successful) {
@@ -390,6 +401,8 @@ export class SaveButtonComponent extends SimpleComponent {
       this.fieldMap._rootComp.onSubmit().subscribe();
     }
   }
+
+
 
 }
 
@@ -417,6 +430,7 @@ export class CancelButtonComponent extends SimpleComponent {
   template: `
   <button *ngIf="field.controlType=='button'" type="{{field.type}}" [ngClass]="field.cssClasses" (click)="onClick($event)" [disabled]="isDisabled()">{{field.label}}</button>
   <a *ngIf="field.controlType=='anchor'" href='{{field.value}}' [ngClass]="field.cssClasses" ><span *ngIf="field.showPencil" class="glyphicon glyphicon-pencil">&nbsp;</span>{{field.label}}</a>
+  <a *ngIf="field.controlType=='htmlAnchor'" href='{{field.value}}' [ngClass]="field.cssClasses" [innerHtml]="field.anchorHtml"></a>
   `,
 })
 export class AnchorOrButtonComponent extends SimpleComponent {
@@ -591,5 +605,19 @@ export class ParameterRetrieverComponent extends SimpleComponent implements Afte
 })
 export class SpacerComponent extends SimpleComponent {
   field: Spacer;
+
+}
+
+@Component({
+  selector: 'toggle',
+  template: `
+    <div *ngIf="field.type == 'checkbox'" [formGroup]='form'>
+      <input type="checkbox" name="{{field.name}}" [id]="field.name" [formControl]="getFormControl()" >
+      <label for="{{ field.name }}" class="radio-label">{{ field.label }}</label>
+    </div>
+  `
+})
+export class ToggleComponent extends SimpleComponent {
+  field: Toggle;
 
 }

@@ -60,6 +60,25 @@ export class SelectionField extends FieldBase<any>  {
       return super.createFormModel();
     }
   }
+
+  nextOption() {
+    if (this.controlType == 'radio') {
+      let nextIdx = 0;
+      const opt = _.find(this.options, (opt, idx)=> {
+        const match = opt.value == this.value;
+        if (match) {
+          nextIdx = ++idx;
+        }
+        return match;
+      });
+      if (nextIdx >= this.options.length) {
+        nextIdx = 0;
+      }
+      const value = this.options[nextIdx].value;
+      this.setValue(value);
+    }
+    return this.value;
+  }
 }
 
 export class Container extends FieldBase<any> {
@@ -100,6 +119,17 @@ export class Container extends FieldBase<any> {
     });
     this.formModel = this.required ? new FormGroup(grp, Validators.required) : new FormGroup(grp);
     return this.formModel;
+  }
+
+  public setValue(value:any, emitEvent:boolean=true) {
+    this.value = value;
+    _.forOwn(value, (val, key) => {
+      const fld = _.find(this.fields, (fldItem) => {
+        return fldItem.name == key;
+      });
+      fld.setValue(val, emitEvent);
+    });
+    // this.formModel.setValue(value, { onlySelf: true, emitEvent: emitEvent });
   }
 
 }
@@ -186,6 +216,8 @@ export class SaveButton extends FieldBase<string> {
   redirectLocation: string;
   closeOnSave: boolean;
   buttonClass: string;
+  targetStep: string;
+  additionalData: any;
 
 
   constructor(options: any, injector: any) {
@@ -194,6 +226,8 @@ export class SaveButton extends FieldBase<string> {
     this.closeOnSave = options['closeOnSave'] || false;
     this.redirectLocation = options['redirectLocation'] || false;
     this.cssClasses = options['cssClasses'] || "btn-primary";
+    this.targetStep = options['targetStep'] || null;
+    this.additionalData = options['additionalData'] || null;
   }
 }
 
@@ -263,6 +297,7 @@ export class AnchorOrButton extends FieldBase<string> {
   type: string;
   isDisabledFn: any;
   showPencil: boolean;
+  anchorHtml: string;
 
   constructor(options: any, injector: any) {
     super(options, injector);
@@ -272,6 +307,7 @@ export class AnchorOrButton extends FieldBase<string> {
     this.controlType = options['controlType'] || 'button';
     this.hasControl = false;
     this.showPencil = options['showPencil'] || false;
+    this.anchorHtml = options['anchorHtml'] || '';
   }
 }
 
@@ -306,7 +342,25 @@ export class ParameterRetrieverField extends FieldBase<string> {
 
 }
 
-export class Spacer extends FieldBase<string> {
+export class NotInFormField extends FieldBase<any> {
+  constructor(options: any, injector: any) {
+    super(options, injector);
+  }
+
+  public createFormModel(valueElem:any = null): any {
+  }
+
+  public getGroup(group: any, fieldMap: any) : any {
+    this.fieldMap = fieldMap;
+    _.set(fieldMap, `${this.getFullFieldName()}.field`, this);
+  }
+
+  public reactEvent(eventName: string, eventData: any, origData: any) {
+
+  }
+}
+
+export class Spacer extends NotInFormField {
   width: string;
   height: string;
 
@@ -314,5 +368,23 @@ export class Spacer extends FieldBase<string> {
     super(options, injector);
     this.width = options.width;
     this.height = options.height;
+  }
+}
+
+export class Toggle extends FieldBase<boolean> {
+  type: string;
+
+  constructor(options: any, injector: any) {
+    super(options, injector);
+    this.type = options['type'] || 'checkbox';
+    this.value = options['value'] || false;
+  }
+}
+
+export class HtmlRaw extends NotInFormField {
+
+  public getGroup(group: any, fieldMap: any) : any {
+    super.getGroup(group, fieldMap);
+    this.value = this.replaceValWithConfig(this.value);
   }
 }

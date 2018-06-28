@@ -10,11 +10,13 @@ module.exports.record = {
     getMeta: {method: 'get', url: "/api/v1/recordmetadata/$oid"},
     updateMeta: {method: 'post', url: "/api/v1/recordmetadata/$oid"},
     harvest: {method: 'post', url:"/api/v1.1/harvest/$packageType"},
-    getDatastream: {method: 'get', url:"/api/v1/datastream/$oid"},
+    getDatastream: {method: 'get', url:"/api/v1/datastream/$oid", readTimeout: 120000},
     addDatastream: {method: 'post', url:"/api/v1/datastream/$oid"},
     removeDatastream: {method: 'delete', url:"/api/v1/datastream/$oid"},
     addDatastreams: {method: 'put', url:"/api/v1/datastream/$oid"},
-    addAndRemoveDatastreams: {method: 'patch', url:"/api/v1/datastream/$oid"}
+    addAndRemoveDatastreams: {method: 'patch', url:"/api/v1/datastream/$oid"},
+    listDatastreams: {method: 'get', url:"/api/v2/datastream/$oid/list"},
+    getRecordRelationships: {method: 'post', url:"/api/v2/recordmetadata/$oid/relationships"}
   },
   customFields: {
     '@branding': {
@@ -31,6 +33,21 @@ module.exports.record = {
       source: 'request',
       type: 'param',
       field: 'oid'
+    },
+    '@user_name': {
+      source: 'request',
+      type: 'user',
+      field: 'name'
+    },
+    '@user_email': {
+      source: 'request',
+      type: 'user',
+      field: 'email'
+    },
+    '@user_username': {
+      source: 'request',
+      type: 'user',
+      field: 'username'
     }
   },
   export: {

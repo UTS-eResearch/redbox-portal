@@ -52,13 +52,13 @@ module.exports = {
         id: "mainTab",
         fields: [
           // -------------------------------------------------------------------
-          // About Tab
+          // Why Tab
           // -------------------------------------------------------------------
           {
             class: "Container",
             definition: {
-              id: "about",
-              label: "@dataRecord-about-tab",
+              id: "aim",
+              label: "@dataRecord-aim-tab",
               active: true,
               fields: [
                 {
@@ -88,12 +88,11 @@ module.exports = {
                     }
                   }
                 },
-
                 {
                   class: 'Container',
                   compClass: 'TextBlockComponent',
                   definition: {
-                    value: '@dataRecord-about-heading',
+                    value: '@dataRecord-aim-heading',
                     type: 'h3'
                   }
                 },
@@ -104,117 +103,6 @@ module.exports = {
                     label: 'RDMP related to this data record',
                     name: 'rdmp',
                     recordType: 'rdmp'
-                  }
-                },
-                {
-                  class: 'TextField',
-                  definition: {
-                    name: 'title',
-                    label: '@dataRecord-title',
-                    help: '@dataRecord-title-help',
-                    type: 'text',
-                    required: true
-                  }
-                },
-                {
-                  class: 'TextArea',
-                  compClass: 'TextAreaComponent',
-                  definition: {
-                    name: 'description',
-                    label: '@dataRecord-description',
-                    help: '@dataRecord-description-help',
-                    type: 'text',
-                    required: true,
-                    subscribe: {
-                      'rdmpGetter': {
-                        onValueUpdate: [{
-                          action: 'utilityService.getPropertyFromObject',
-                          field: 'description'
-                        }]
-                      }
-                    }
-                  }
-                },
-                {
-                  class: 'SelectionField',
-                  compClass: 'DropdownFieldComponent',
-                  definition: {
-                    name: 'datatype',
-                    label: '@dataRecord-datatype',
-                    help: '@dataRecord-datatype-help',
-                    required: true,
-                    options: [{
-                        value: "",
-                        label: "@dataRecord-dataype-select:Empty"
-                      },
-                      {
-                        value: "catalogueOrIndex",
-                        label: "@dataRecord-dataype-select:catalogueOrIndex"
-                      },
-                      {
-                        value: "collection",
-                        label: "@dataRecord-dataype-select:collection"
-                      },
-                      {
-                        value: "dataset",
-                        label: "@dataRecord-dataype-select:dataset"
-                      },
-                      {
-                        value: "registry",
-                        label: "@dataRecord-dataype-select:registry"
-                      },
-                      {
-                        value: "repository",
-                        label: "@dataRecord-dataype-select:repository"
-                      }
-                    ]
-                  }
-                },
-                {
-                  class: 'RepeatableContainer',
-                  compClass: 'RepeatableTextfieldComponent',
-                  definition: {
-                    label: "@dataRecord-keywords",
-                    help: "@dataRecord-keywords-help",
-                    name: "finalKeywords",
-                    required: true,
-                    fields: [{
-                      class: 'TextField',
-                      definition: {
-                        required: true,
-                        type: 'text',
-                        validationMessages: {
-                          required: "@dataRecord-keywords-required"
-                        }
-                      }
-                    }],
-                    subscribe: {
-                      'rdmpGetter': {
-                        onValueUpdate: [{
-                          action: 'utilityService.getPropertyFromObject',
-                          field: 'finalKeywords'
-                        }]
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          // -------------------------------------------------------------------
-          // Aim Tab
-          // -------------------------------------------------------------------
-          {
-            class: "Container",
-            definition: {
-              id: "aim",
-              label: "@dataRecord-aim-tab",
-              fields: [{
-                  class: 'Container',
-                  compClass: 'TextBlockComponent',
-                  definition: {
-                    value: '@dataRecord-aim-heading',
-                    type: 'h3'
                   }
                 },
                 {
@@ -318,25 +206,13 @@ module.exports = {
                   }
                 },
                 {
-                  class: 'RepeatableVocab',
-                  compClass: 'RepeatableVocabComponent',
+                  class: 'ANDSVocab',
+                  compClass: 'ANDSVocabComponent',
                   definition: {
                     label: "@dmpt-project-anzsrcFor",
                     help: "@dmpt-project-anzsrcFor-help",
                     name: "dc:subject_anzsrc:for",
-                    forceClone: ['sourceData', 'completerService'],
-                    fields: [{
-                      class: 'VocabField',
-                      definition: {
-                        vocabId: 'anzsrc-for',
-                        "validationMessages": {
-                          "required": "Please select a valid value."
-                        },
-                        fieldNames: ['uri', 'label', 'notation'],
-                        searchFields: 'notation,label',
-                        titleFieldArr: ['notation', 'label']
-                      }
-                    }],
+                    vocabId: 'anzsrc-for',
                     subscribe: {
                       'rdmpGetter': {
                         onValueUpdate: [{
@@ -348,30 +224,130 @@ module.exports = {
                   }
                 },
                 {
-                  class: 'RepeatableVocab',
-                  compClass: 'RepeatableVocabComponent',
+                  class: 'ANDSVocab',
+                  compClass: 'ANDSVocabComponent',
                   definition: {
                     label: "@dmpt-project-anzsrcSeo",
                     help: "@dmpt-project-anzsrcSeo-help",
                     name: "dc:subject_anzsrc:seo",
-                    forceClone: ['sourceData', 'completerService'],
+                    vocabId: 'anzsrc-seo',
+                    subscribe: {
+                      'rdmpGetter': {
+                        onValueUpdate: [{
+                          action: 'utilityService.getPropertyFromObject',
+                          field: 'dc:subject_anzsrc:seo'
+                        }]
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          // -------------------------------------------------------------------
+          // What Tab
+          // -------------------------------------------------------------------
+          {
+            class: "Container",
+            definition: {
+              id: "about",
+              label: "@dataRecord-about-tab",
+              fields: [
+                {
+                  class: 'Container',
+                  compClass: 'TextBlockComponent',
+                  definition: {
+                    value: '@dataRecord-about-heading',
+                    type: 'h3'
+                  }
+                },
+                {
+                  class: 'TextField',
+                  definition: {
+                    name: 'title',
+                    label: '@dataRecord-title',
+                    help: '@dataRecord-title-help',
+                    type: 'text',
+                    required: true
+                  }
+                },
+                {
+                  class: 'TextArea',
+                  compClass: 'TextAreaComponent',
+                  definition: {
+                    name: 'description',
+                    label: '@dataRecord-description',
+                    help: '@dataRecord-description-help',
+                    type: 'text',
+                    required: true,
+                    subscribe: {
+                      'rdmpGetter': {
+                        onValueUpdate: [{
+                          action: 'utilityService.getPropertyFromObject',
+                          field: 'description'
+                        }]
+                      }
+                    }
+                  }
+                },
+                {
+                  class: 'SelectionField',
+                  compClass: 'DropdownFieldComponent',
+                  definition: {
+                    name: 'datatype',
+                    label: '@dataRecord-datatype',
+                    help: '@dataRecord-datatype-help',
+                    required: true,
+                    options: [{
+                        value: "",
+                        label: "@dataRecord-dataype-select:Empty"
+                      },
+                      {
+                        value: "catalogueOrIndex",
+                        label: "@dataRecord-dataype-select:catalogueOrIndex"
+                      },
+                      {
+                        value: "collection",
+                        label: "@dataRecord-dataype-select:collection"
+                      },
+                      {
+                        value: "dataset",
+                        label: "@dataRecord-dataype-select:dataset"
+                      },
+                      {
+                        value: "registry",
+                        label: "@dataRecord-dataype-select:registry"
+                      },
+                      {
+                        value: "repository",
+                        label: "@dataRecord-dataype-select:repository"
+                      }
+                    ]
+                  }
+                },
+                {
+                  class: 'RepeatableContainer',
+                  compClass: 'RepeatableTextfieldComponent',
+                  definition: {
+                    label: "@dataRecord-keywords",
+                    help: "@dataRecord-keywords-help",
+                    name: "finalKeywords",
+                    required: true,
                     fields: [{
-                      class: 'VocabField',
+                      class: 'TextField',
                       definition: {
-                        vocabId: 'anzsrc-seo',
-                        "validationMessages": {
-                          "required": "Please select a valid value."
-                        },
-                        fieldNames: ['uri', 'label', 'notation'],
-                        searchFields: 'notation,label',
-                        titleFieldArr: ['notation', 'label']
+                        required: true,
+                        type: 'text',
+                        validationMessages: {
+                          required: "@dataRecord-keywords-required"
+                        }
                       }
                     }],
                     subscribe: {
                       'rdmpGetter': {
                         onValueUpdate: [{
                           action: 'utilityService.getPropertyFromObject',
-                          field: 'dc:subject_anzsrc:seo'
+                          field: 'finalKeywords'
                         }]
                       }
                     }
@@ -485,8 +461,10 @@ module.exports = {
                           field: 'contributor_data_manager'
                         }]
                       }
-                    }
-                  }
+                    },
+                    value: {name: '@user_name', email: '@user_email', username: '@user_username', text_full_name: '@user_name'}
+                  },
+                  variableSubstitutionFields: ['value.name', 'value.email', 'value.username', 'value.text_full_name']
                 },
                 {
                   class: 'RepeatableContributor',
@@ -587,40 +565,6 @@ module.exports = {
                         }]
                       }
                     }
-                  }
-                }
-              ]
-            }
-          },
-          // -------------------------------------------------------------------
-          // Data Tab
-          // -------------------------------------------------------------------
-          {
-            class: "Container",
-            definition: {
-              id: "data",
-              label: "@dataRecord-data-tab",
-              fields: [{
-                  class: 'Container',
-                  compClass: 'TextBlockComponent',
-                  definition: {
-                    value: '@dataRecord-data-heading',
-                    type: 'h3'
-                  }
-                },
-                {
-                  class: 'DataLocation',
-                  compClass: 'DataLocationComponent',
-                  definition: {
-                    name:"dataLocations"
-                  }
-                },
-                {
-                  class: 'TextArea',
-                  definition: {
-                    name: 'software_equipment',
-                    label: '@dataRecord-data-software',
-                    type: 'text'
                   }
                 }
               ]
@@ -762,7 +706,7 @@ module.exports = {
                     name: "related_publications",
                     label: "@dmpt-related-publication",
                     help: "@dmpt-related-publication-help",
-                    forceClone: ['fields', 'fieldMap'],
+                    forceClone: ['fields'],
                     fields: [
                       {
                         class: 'Container',
@@ -809,6 +753,41 @@ module.exports = {
                         }
                       }
                     ]
+                  }
+                }
+              ]
+            }
+          },
+          // -------------------------------------------------------------------
+          // Data Tab
+          // -------------------------------------------------------------------
+          {
+            class: "Container",
+            definition: {
+              id: "data",
+              label: "@dataRecord-data-tab",
+              fields: [{
+                  class: 'Container',
+                  compClass: 'TextBlockComponent',
+                  definition: {
+                    value: '@dataRecord-data-heading',
+                    type: 'h3'
+                  }
+                },
+                {
+                  class: 'DataLocation',
+                  compClass: 'DataLocationComponent',
+                  definition: {
+                    name:"dataLocations",
+                    maxFileSize: 524288000
+                  }
+                },
+                {
+                  class: 'TextArea',
+                  definition: {
+                    name: 'software_equipment',
+                    label: '@dataRecord-data-software',
+                    type: 'text'
                   }
                 }
               ]

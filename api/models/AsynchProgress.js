@@ -39,6 +39,15 @@ module.exports = {
     },
     message: {
       type: 'string'
+    },
+    metadata: {
+      type: 'json'
+    },
+    relatedRecordId: {
+      type: 'string'
+    },
+    taskType: {
+      type: 'string'
     }
   }
 };

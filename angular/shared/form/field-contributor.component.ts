@@ -37,14 +37,15 @@ export class ContributorField extends FieldBase<any> {
   roleColHdr: string;
   orcidColHdr: string;
   showHeader: boolean;
+  showRole: boolean;
   roles: string[];
 
   fieldNames: any;
   fullNameResponseField: string = "text_full_name";
   groupFieldNames: string[];
-  validators: any;
   enabledValidators: boolean;
   marginTop: string;
+  baseMarginTop: string;
   role: string;
   // Frankenstein begin
   vocabField: VocabField;
@@ -67,6 +68,9 @@ export class ContributorField extends FieldBase<any> {
     this.orcidColHdr = options['orcidColHdr'] ? this.getTranslated(options['orcidColHdr'], options['orcidColHdr']) : 'ORCID';
 
     this.showHeader = options['showHeader'] || true;
+    this.showRole = options['showRole'] || true;
+    this.baseMarginTop = options['baseMarginTop'] || '45px';
+
     this.roles = options['roles'] || [];
     this.value = options['value'] || this.setEmptyValue();
     this.fieldNames = options['fieldNames'] || [];
@@ -111,6 +115,9 @@ export class ContributorField extends FieldBase<any> {
   createFormModel(valueElem: any = undefined): any {
     if (valueElem) {
       this.value = valueElem;
+    }
+    if (_.isEmpty(this.value.role)) {
+      this.value.role = this.role;
     }
 
     if (!this.freeText) {

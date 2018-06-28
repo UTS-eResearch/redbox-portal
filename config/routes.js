@@ -105,6 +105,27 @@ module.exports.routes = {
     action: 'profile',
     skipAssets: true
   },
+  '/:branding/:portal/admin': {
+    controller: 'RenderViewController',
+    action: 'render',
+    locals:{
+      'view': 'admin/home'
+    }
+  },
+  '/:branding/:portal/availableServicesList': {
+    controller: 'RenderViewController',
+    action: 'render',
+    locals:{
+      'view': 'availableServicesList'
+    }
+  },
+  '/:branding/:portal/getAdvice': {
+    controller: 'RenderViewController',
+    action: 'render',
+    locals:{
+      'view': 'getAdvice'
+    }
+  },
   /***************************************************************************
   *                                                                          *
   * Custom routes here...                                                    *
@@ -141,6 +162,9 @@ module.exports.routes = {
   'get /:branding/:portal/record/edit/:oid': 'RecordController.edit',
   '/:branding/:portal/record/:oid/attach': 'RecordController.doAttachment',
   '/:branding/:portal/record/:oid/attach/:attachId': 'RecordController.doAttachment',
+  //TODO: we're using an * here as sails slugs and req.param don't seem to like parameters with . in them without it.
+  'get /:branding/:portal/record/:oid/datastream*': 'RecordController.getDataStream',
+  'get /:branding/:portal/record/:oid/attachments': 'RecordController.getAttachments',
   'get /:branding/:portal/record/wfSteps/:recordType': 'RecordController.getWorkflowSteps',
   'post /:branding/:portal/recordmeta/:recordType': 'RecordController.create',
   'put /:branding/:portal/recordmeta/:oid': 'RecordController.update',
@@ -156,8 +180,12 @@ module.exports.routes = {
   'post /:branding/:portal/collection/:collectionId': 'VocabController.loadCollection',
   'get /:branding/:portal/export': 'ExportController.index',
   'get /:branding/:portal/export/record/download/:format': 'ExportController.downloadRecs',
-  'get /:branding/:portal/asynch/start/:procId': 'AsynchController.start',
-  'get /:branding/:portal/asynch/progress/:progId': 'AsynchController.progress',
+  'post /:branding/:portal/asynch': 'AsynchController.start',
+  'delete /:branding/:portal/asynch': 'AsynchController.stop',
+  'put /:branding/:portal/asynch': 'AsynchController.update',
+  'get /:branding/:portal/asynch': 'AsynchController.progress',
+  'get /:branding/:portal/asynch/subscribe/:roomId': 'AsynchController.subscribe',
+  'delete /:branding/:portal/asynch/subscribe/:roomId': 'AsynchController.unsubscribe',
   'get /:branding/:portal/admin/reports': 'ReportsController.render',
   'get /:branding/:portal/admin/report/:name': 'ReportController.render',
   'get /:branding/:portal/admin/getReport': 'ReportController.get',

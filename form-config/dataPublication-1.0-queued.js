@@ -1305,6 +1305,50 @@ module.exports = {
                 }
               ]
             }
+          },
+          {
+            class: "Container",
+            roles: ['Admin', 'Librarians'],
+            definition: {
+              id: "reviewer",
+              label: "@dataPublication-reviewer-tab",
+              fields: [
+                {
+                  class: 'Container',
+                  compClass: 'TextBlockComponent',
+                  definition: {
+                    value: "@dataPublication-reviewer-tab-heading",
+                    type: 'h3'
+                  }
+                },
+                {
+                  class: 'AsynchField',
+                  definition: {
+                    name: 'asynchprogress',
+                    label:"@asynch-label",
+                    nameLabel: "@asynch-name",
+                    statusLabel: "@asynch-status",
+                    dateStartedLabel: "@asynch-dateStarted",
+                    dateCompletedLabel: "@asynch-dateCompleted",
+                    startedByLabel: "@asynch-startedBy",
+                    messageLabel: "@asynch-message",
+                    completionLabel: "@asynch-completion",
+                    lastUpdateLabel: "@asynch-lastUpdate",
+                    listenType: "taskType",
+                    taskType: "publication",
+                    relatedRecordId: "@oid",
+                    criteria: {
+                      where: {
+                        relatedRecordId: "@oid",
+                        taskType: "publication"
+                      }
+                    },
+                    dateFormat: 'L LT'
+                  },
+                  variableSubstitutionFields: ['relatedRecordId']
+                }
+              ]
+            }
           }
         ]
       }
