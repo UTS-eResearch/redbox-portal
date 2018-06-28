@@ -23,6 +23,7 @@
     "axios": "^0.18.0",
     "bcrypt": "^1.0.2",
     "chokidar": "~1.6.1",
+    "copy-and-watch": "^0.1.2",
     "core-js": "^2.4.1",
     "dotenv": "^5.0.1",
     "ejs": "2.5.7",
@@ -54,6 +55,7 @@
     "sails-hook-autoreload": "^1.1.0",
     "sails-hook-grunt": "^3.1.0",
     "sails-hook-orm": "^2.0.0",
+    "sails-hook-redbox-omero": "/opt/hooks/sails-hook-redbox-omero",
     "sails-hook-sockets": "^1.5.2",
     "sails-mongo": "^1.0.0",
     "skipper-gridfs": "https://github.com/marcelomedina10/skipper-gridfs.git",
@@ -68,6 +70,7 @@
     "zone.js": "^0.8.4"
   },
   "scripts": {
+    "watch": "copy-and-watch --watch /opt/hooks/sails-hook-redbox-omero/app/omero/dist/* ./.tmp/public/angular/omero",
     "debug": "node debug app.js",
     "start": "node app.js",
     "test": "node ./node_modules/mocha/bin/mocha test/bootstrap.test.js test/unit/**/*.test.js",

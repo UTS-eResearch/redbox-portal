@@ -10,6 +10,7 @@ services:
     restart: always
     volumes:
        - ".:/opt/redbox-portal"
+       - "/opt/hooks:/opt/hooks"
        - "/mnt/data/attachments:/attachments"
     expose:
        - "1500"
