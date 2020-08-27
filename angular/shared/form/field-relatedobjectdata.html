@@ -1,28 +1,91 @@
 <div class='padding-bottom-10'>
-
   <div class="row">
-    <table class="table">
-      <thead>
-          <tr>
-              <ng-container *ngFor="let header of field.columns"><th *ngIf='header.show != false'>{{ header.label }}</th></ng-container>
-          </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let item of field.relatedObjects">
-          <ng-container *ngFor="let column of field.columns">
-            <td *ngIf='column.show != false'>
-              <span *ngIf='column.link === "relative"; then relative'></span>
-              <span *ngIf='column.link === "absolute"; then absolute; else noProcessing'></span>
-              <ng-template #multivalue></ng-template>
-              <ng-template #relative><a href="/{{ branding }}/{{ portal }}/{{ column.link.pattern}}">{{ column.link.pattern | stringTemplate:item }}</a></ng-template>
-              <ng-template #absolute><a target="_blank" rel="noopener noreferrer" href="{{item[column.property]}}">{{item[column.property]}}</a></ng-template>
-              <ng-template #noProcessing>{{ item[column.property] }}</ng-template>
+    <form [formGroup]="field.currentItemForm"
+          (ngSubmit)="field.saveItem(field.currentItemForm['value'])"
+    >
+      <table class="table">
+        <thead>
+        <tr>
+          <ng-container *ngFor="let header of field.columns">
+            <th class="{{header.cssClasses}}" *ngIf='header.show != false'>{{ header.label }}</th>
+          </ng-container>
+          <th class="col-md-2">&nbsp;</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let item of field.relatedObjects; let i = index" [attr.data-index]="i">
+          <ng-container *ngIf="!item['archive']">
+            <ng-container *ngFor="let column of field.columns">
+              <td
+                *ngIf="column.show != false && (!field.isUnLocked(i) || !column.isEditable) ">
+                <span *ngIf='column.link === "relative"; then relative'></span>
+                <span *ngIf='column.link === "absolute"; then absolute; else noProcessing'></span>
+                <ng-template #multivalue></ng-template>
+                <ng-template #relative><a
+                  href="/{{ branding }}/{{ portal }}/{{ column.link.pattern}}">{{ column.link.pattern | stringTemplate:item }}</a>
+                </ng-template>
+                <ng-template #absolute><a target="_blank" rel="noopener noreferrer"
+                                          href="{{item[column.property]}}">{{item[column.property]}}</a></ng-template>
+                <ng-template #noProcessing>{{ item[column.property] }}</ng-template>
+              </td>
+              <td *ngIf="column.show != false && field.isUnLocked(i) && column.isEditable">
+                <div class="form-group">
+                  <input class="form-control" type="text" [value]="item[column.property]"
+                         formControlName="{{ column.property }}">
+                </div>
+              </td>
+            </ng-container>
+            <td>
+              <button type="button" *ngIf="field.editMode && field.isEditable && field.isUnLocked(i)"
+                      class="btn btn-block" (click)="field.lockItem()">
+                <i aria-hidden="true" class="fa fa-pencil-square-o"></i>
+              </button>
+              <button type="button" *ngIf="field.editMode &&   field.isEditable && !field.isUnLocked(i)"
+                      class="btn btn-block" (click)="field.editRelatedObject(item, i)">
+                <i aria-hidden="true" class="fa fa-pencil"></i>
+              </button>
+              <button type="submit" *ngIf="field.editMode && field.isEditable && field.isUnLocked(i)"
+                      class="btn btn-block btn-success">
+                <i aria-hidden="true" class="fa fa-save"></i>
+              </button>
+              <button type="button"
+                      *ngIf="field.editMode && field.isEditable && field.isUnLocked(i) && !item['archive']"
+                      class="btn btn-block btn-danger" (click)="field.archiveItem(item, i)">
+                <i aria-hidden="true" class="fa fa-archive"></i>
+              </button>
             </td>
           </ng-container>
         </tr>
-      </tbody>
-    </table>
-    <p *ngIf="field.failedObjects.length > 0">There were {{ field.failedObjects.length }} records that failed to load</p>
-    <p *ngIf="field.accessDeniedObjects.length > 0">There were {{ field.accessDeniedObjects.length }} records that you do not have access to</p>
+        </tbody>
+      </table>
+    </form>
+    <p *ngIf="field.failedObjects.length > 0">There were {{ field.failedObjects.length }} records that failed to
+      load</p>
+    <p *ngIf="field.accessDeniedObjects.length > 0">There were {{ field.accessDeniedObjects.length }} records that you
+      do not have access to</p>
+  </div>
+</div>
+<div id="relatedObjectConfirmArchiveModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">{{field.confirmArchiveTitle}}</h4>
+      </div>
+      <div class="modal-body">
+        <p>
+          <code>{{ field.archiveCurrentItem['title'] }}</code>
+          {{field.arhiveConfirmMessage}}
+        </p>
+        <p>
+          <button class="btn btn-block btn-danger"
+                  (click)="field.confirmArchive(true)">{{field.confirmArchiveTitle}}
+          </button>
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
   </div>
 </div>

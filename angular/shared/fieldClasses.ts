@@ -31,9 +31,10 @@ import { RelatedFileUploadComponent, RelatedFileUploadField } from './form/field
 import { PublishDataLocationSelectorComponent, PublishDataLocationSelectorField } from './form/field-publishdatalocationselector.component'
 import { MapField, MapComponent } from './form/field-map.component';
 import { GenericGroupComponent, RepeatableGroupComponent } from './form/field-group.component';
-import { WorkspaceSelectorField } from './form/workspace-field.component';
+import { WorkspaceSelectorField, WorkspaceRegisterField } from './form/workspace-field.component';
 import { WorkspaceSelectorComponent, WorkspaceSelectorFieldComponent } from './form/workspace-selector.component';
 import { WorkspaceSelectComponent, WorkspaceSelectFieldComponent } from './form/workspace-select.component';
+import { WorkspaceRegisterComponent, WorkspaceRegisterFieldComponent } from './form/workspace-register.component';
 import { ANDSVocabField, ANDSVocabComponent } from './form/field-andsvocab.component'
 import { PDFListField, PDFListComponent } from './form/field-pdflist.component';
 import { AsynchField, AsynchComponent } from './form/field-asynch.component';
@@ -67,6 +68,7 @@ export const fieldClasses=  {
   'DataLocation':{ 'meta': DataLocationField, 'comp': DataLocationComponent},
   'RelatedFileUpload':{ 'meta': RelatedFileUploadField, 'comp': RelatedFileUploadComponent},
   'WorkspaceSelectorField' : { 'meta': WorkspaceSelectorField, 'comp': [WorkspaceSelectorComponent, WorkspaceSelectorFieldComponent, WorkspaceSelectComponent, WorkspaceSelectFieldComponent] },
+  'WorkspaceRegisterField': { 'meta': WorkspaceRegisterField, 'comp': [WorkspaceRegisterComponent, WorkspaceRegisterFieldComponent]},
   'PublishDataLocationSelector':{ 'meta': PublishDataLocationSelectorField, 'comp': PublishDataLocationSelectorComponent},
   'TabNavButton': {'meta': TabNavButton, 'comp': TabNavButtonComponent},
   'Spacer': {'meta': Spacer, 'comp': SpacerComponent},

@@ -74,5 +74,21 @@ module.exports = {
       adapter: require('sails-mongo'),
       url: 'mongodb://mongodb:27017/redbox-portal'
     }
-  }
+  },
+  workspaces: {
+     portal:{
+       authorization: 'Bearer 054af4b5-c5c5-40d3-84cf-5f7bf870aa83'
+     },
+     provisionerUser: 'admin',
+     parentRecord: 'rdmp',
+     gitlab: {
+       parentRecord: 'rdmp',
+       formName: 'gitlab-1.0-draft',
+       workflowStage: 'draft',
+       appName: 'gitlab',
+       appId: 'gitlab',
+       recordType: 'gitlab',
+       host: 'https://git-test.research.uts.edu.au',
+     }
+   }
 };

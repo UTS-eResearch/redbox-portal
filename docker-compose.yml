@@ -4,7 +4,7 @@ networks:
 services:
   redboxportal:
     build: .
-    image: qcifengineering/redbox-portal:latest
+    image: qcifengineering/redbox-portal:travis-2398
     ports:
        - "1500:1500"
     volumes:

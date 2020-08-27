@@ -74,7 +74,6 @@ export module Services {
       if(!emailPendingUsers) {
         emailPendingUsers = [];
       }
-      sails.log.debug(config);
       const post = request({
         uri: config.brandingAndPortalUrl + `/api/records/metadata/${recordType}`,
         method: 'POST',

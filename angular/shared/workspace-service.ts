@@ -58,4 +58,21 @@ export class WorkspaceTypeService extends BaseService {
     .toPromise()
     .then((res:any) => this.extractData(res));
   }
+
+  async createWorkspace(rdmpId: string, workspaceInfo: any, workspaceType: string) {
+    const wsUrl = this.brandingAndPortalUrl + '/workspaces/create';
+    try {
+      const result = await this.http.post(
+        wsUrl, {
+          rdmp: rdmpId,
+          workspaceInfo: workspaceInfo,
+          workspaceType: workspaceType
+        },
+        this.options
+      ).toPromise();
+      return Promise.resolve(this.extractData(result));
+    } catch (e) {
+      return Promise.reject(new Error(e));
+    }
+  }
 }

@@ -9,6 +9,8 @@ var dataPublicationEmbargoedForm = _.cloneDeep(require('../form-config/dataPubli
 var dataPublicationPublishedForm = _.cloneDeep(require('../form-config/dataPublication-1.0-published.js'));
 var dataPublicationRetiredForm = _.cloneDeep(require('../form-config/dataPublication-1.0-retired.js'));
 var dataPublicationReviewingForm = _.cloneDeep(require('../form-config/dataPublication-1.0-reviewing.js'));
+var genericWorkspaceForm = require('../form-config/genericWorkspace-1.0-draft.js');
+
 module.exports.form = {
   defaultForm: "default-1.0-draft",
   forms: {
@@ -18,6 +20,7 @@ module.exports.form = {
     "dataPublication-1.0-embargoed": dataPublicationEmbargoedForm,
     "dataPublication-1.0-published": dataPublicationPublishedForm,
     "dataPublication-1.0-retired": dataPublicationRetiredForm,
-    "dataPublication-1.0-reviewing": dataPublicationReviewingForm
+    "dataPublication-1.0-reviewing": dataPublicationReviewingForm,
+    "genericWorkspace-1.0-draft": genericWorkspaceForm
   }
 };

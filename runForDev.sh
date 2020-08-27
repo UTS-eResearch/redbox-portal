@@ -2,7 +2,7 @@
 # Uncomment below if you need to see the minified version....
 # export buildTarget="PROD"
 PORTAL_DIR=/opt/redbox-portal
-PORTAL_IMAGE=qcifengineering/redbox-portal:latest
+PORTAL_IMAGE=qcifengineering/redbox-portal:travis-2398
 source dev_build/buildFns.sh
 sudo chown -R vagrant:vagrant *
 watch="false"
