@@ -130,7 +130,7 @@ export class TextFieldComponent extends EmbeddableComponent {
     <div class="row">
       <div class="col-xs-12">
       <span class="label-font" [id]="field.name">
-        {{field.label}} {{ getRequiredLabelStr() }}
+        {{field.label}} <span [innerHTML]="getRequiredLabelStr()"></span>
         <button type="button" class="btn btn-default" *ngIf="field.help" (click)="toggleHelp()" [attr.aria-label]="'help' | translate "><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></button>
       </span>
       <span id="{{ 'helpBlock_' + field.name }}" class="help-block" *ngIf="this.helpShow" [innerHtml]="field.help"></span>
