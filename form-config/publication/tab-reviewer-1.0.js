@@ -40,23 +40,23 @@ module.exports = [
           },
           variableSubstitutionFields: ['relatedRecordId']
         },
-        // {
-        //   class: "SaveButton",
-        //   roles: ["Admin"],
-        //   definition: {
-        //     name: "confirmDelete",
-        //     label: '@dataPublication-delete',
-        //     closeOnSave: true,
-        //     redirectLocation: '/@branding/@portal/dashboard/dataPublication',
-        //     cssClasses: 'btn-danger',
-        //     confirmationMessage: '@dataPublication-confirmDelete',
-        //     confirmationTitle: '@dataPublication-confirmDeleteTitle',
-        //     cancelButtonMessage: '@dataPublication-cancelButtonMessage',
-        //     confirmButtonMessage: '@dataPublication-confirmButtonMessage',
-        //     isDelete: true
-        //   },
-        //   variableSubstitutionFields: ['redirectLocation']
-        // }
+        {
+          class: "SaveButton",
+          roles: ["Admin"],
+          definition: {
+            name: "confirmDelete",
+            label: '@dataPublication-delete',
+            closeOnSave: true,
+            redirectLocation: '/@branding/@portal/dashboard/dataPublication',
+            cssClasses: 'btn-danger',
+            confirmationMessage: '@dataPublication-confirmDelete',
+            confirmationTitle: '@dataPublication-confirmDeleteTitle',
+            cancelButtonMessage: '@dataPublication-cancelButtonMessage',
+            confirmButtonMessage: '@dataPublication-confirmButtonMessage',
+            isDelete: true
+          },
+          variableSubstitutionFields: ['redirectLocation']
+        }
       ]
     }
   }

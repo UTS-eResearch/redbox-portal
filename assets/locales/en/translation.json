@@ -782,7 +782,7 @@
   "@dataPublication-embargo-back-to-draft": "Return to Draft",
   "@dataPublication-submit-for-review": "Submit for Review",
   "@dataPublication-delete": "DELETE PUBLICATION",
-  "@dataPublication-confirmDelete": "Are you sure you want to delete?",
+  "@dataPublication-confirmDelete": "Are you sure you want to delete? <strong>This cannot be undone.</strong><hr/> If this data publication has a data site associated please delete that too, delete the OCFL record in staging and then in publication, then wait for it to sync.",
   "@dataPublication-confirmDeleteTitle": "Confirm Publication Delete",
   "@dataPublication-cancelButtonMessage": "Cancel",
   "@dataPublication-confirmButtonMessage": "Yes, please DELETE",
