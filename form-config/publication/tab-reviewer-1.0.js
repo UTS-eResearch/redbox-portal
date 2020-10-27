@@ -43,6 +43,7 @@ module.exports = [
         {
           class: "SaveButton",
           roles: ["Admin"],
+          editOnly: true,
           definition: {
             name: "confirmDelete",
             label: '@dataPublication-delete',
